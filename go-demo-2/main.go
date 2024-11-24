@@ -247,6 +247,11 @@ func makeFuncExample() {
 		На этом шаге GO придется заняться выделением памяти для массива, т.к. изначально cap(newArr) == 2.
 		И GO выделит память с запасом, т.е. если до добавления 3-го эл-та ("new_elem2") cap(newArr) было равно 2, то
 		после добавления 3-го эл-та, cap(newArr) станет равно 4.
+
+		Подробнее о том, как работает увеличение cap (вместимости) можно посмотреть в исходниках Go.
+		Для этого надо зайти в репу на Github и посмотреть код функции повышения cap.
+		Это функция nextslicecap, которая находится тут go/src/runtime/slice.go
+		Ссылочка: https://github.com/golang/go/blob/master/src/runtime/slice.go#L289C6-L289C18
 	*/
 	newArr = append(newArr, "new_elem2")
 	fmt.Printf("newArr == %v | len(newArr) == %v | cap(newArr) == %v\n", newArr, len(newArr), cap(newArr))
