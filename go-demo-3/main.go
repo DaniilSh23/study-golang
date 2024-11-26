@@ -159,3 +159,74 @@ func iterationMap() {
 		fmt.Println(key, val)
 	}
 }
+
+// Смотрим работу break и switch-case
+func showBreakSwitchCase() {
+	val := 1
+	for {
+		switch val {
+		case 1:
+			fmt.Println("Case 1")
+			val = 2 // Меняем значение, чтобы перейти к следующему кейсу
+		case 2:
+			fmt.Println("Case 2")
+			val = 3 // Переходим к следующему кейсу
+		case 3:
+			fmt.Println("Case 3")
+			break // Выходим из switch, но не из цикла for
+		default:
+			fmt.Println("Default")
+		}
+		fmt.Println("После switch") // Эта строка будет выполнена
+		break                       // Останавливаем цикл
+	}
+}
+
+// Функция для иллюстрации работы с лейблами
+func showLabels() {
+	val := 1
+
+ForCicle: // Это лейбл для цикла for
+	for {
+
+	Switch: // Это лейбл для блока switch-case
+		switch val {
+		case 1:
+			fmt.Println("Case 1")
+		case 2:
+			fmt.Println("Case 2")
+		case 3:
+			break Switch // Останавливаем дальнейший проход по кейсам (break для лейбла Switch)
+		default:
+			fmt.Println("Default")
+			break ForCicle // Останавливаем цикл (break для лейбла ForCicle)
+		}
+
+		val += 1
+	}
+}
+
+// Иллюстрация работы Type Alias
+func showTypeAlias() {
+	/*
+		Go дает нам возможность создавать alias для типов данных, таких как массивы, мапы и т.д.,
+		присваивая им некий alias - т.е. свое собственное сокращенное наименование. Пример с определением alis ниже:
+	*/
+	type mapAlias = map[string]string // Создали alias для мапы, в которой ключ - строка, значение - тоже строка
+	newMap := mapAlias{"1": "abc"}    // Создаем новую мапу, с объявленным выше типом через alias
+	fmt.Println("Alias newMap == ", newMap)
+}
+
+// Иллюстрация работы make() для map
+func showMakeForMap() {
+	/*
+		Через функцию make() мы можем создавать мапы, заранее указывая их размер (число пар ключ-значение).
+		Оптимизация такого подхода в том, что Go заранее выделит память под указанные элементы, а не будет тратить ресурсы
+		на то, чтобы выделять память в процессе добавления элементов в мапу.
+		Это не значит, что мапа будет ограничена заранее заданным кол-вом эл-тов, мапа расширяема, но если нам сразу известно
+		сколько элементов там будет максимально, то использование make() позволить сэкономить вычислительные ресурсы.
+	*/
+	type mapAlias = map[string]string
+	newMap := make(mapAlias, 4) // Здесь мы указываем, что в мапе будет 4 эл-та
+	fmt.Println("newMap", newMap)
+}
