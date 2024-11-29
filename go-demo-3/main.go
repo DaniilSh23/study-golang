@@ -11,7 +11,7 @@ import (
 var bookmarksMap = map[string]string{}
 
 func main() {
-	mainMenu()
+	showRefernces()
 }
 
 /*
