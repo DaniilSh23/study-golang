@@ -2,12 +2,13 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"math/rand/v2"
+	"net/url"
 	"os"
 	"strings"
-    "math/rand/v2"
 )
-
 
 // Структура, описывающая аккаунт, пароль для которого храним
 type account struct {
@@ -21,39 +22,89 @@ func (account) structMethod() {
 	fmt.Println("Я метод структуры account")
 }
 
-// Еще один метод для структуры, в котором будут использоваться данные из структуры
-func (acc account) structMethod2() {
+/*
+Если указать (acc account) без звездочки, т.е. вот так: (acc *account), то будет создана копия структуры и передана в функцию (метод структуры), а со звездочкой - будет передан указатель на структуру.
+*/
+
+// Еще один метод для структуры, в котором будут использоваться данные из структуры. 
+func (acc *account) structMethod2() {
 	fmt.Printf("Метод для структуры со следующими полями:\nlogin: %v\npassword: %v\nurl: %v\n", acc.login, acc.password, acc.url)
 }
 
 // Показать креды аккаунта
-func (acc account) showAccCreds() {
+func (acc *account) showAccCreds() {
 	fmt.Printf("Сервис: %v\nЛогин: %v\nПароль: %v\n", acc.url, acc.login, acc.password)
 }
 
+// Метод для создания пароля аккаунта
+func (acc *account) generateAccPassword(passLen int) {
+	randPass := make([]string, passLen)
+	
+	for indx:=0; indx < int(passLen); indx++ {
+		randElem := rand.IntN(65535)
+		randPass[indx] = string(randElem)
+	}
+	acc.password = strings.Join(randPass, "")
+}
+
+// Проверка, что пароль у аккаунта НЕ указан
+func (acc *account) checkPassIsEmpty() bool {
+	if acc.password == "" {
+		return true
+	}
+	return false
+}
+
+// Конструктор структуры account
+func initAccount(login, password, urlString string) (*account, error) {
+	
+	// Валидация url адреса
+	_, err := url.ParseRequestURI(urlString)
+	if err != nil {
+		return nil, errors.New("Invalid URL address.")
+	}
+
+	return &account {
+		login: login,
+		password: password,
+		url: urlString,
+	}, nil
+}
+
+
 func main() {
-	// corePasswordStorage()
+	corePasswordStorage()
 	// runeExample()
-	newPass := generateRandPassword(7)
-	fmt.Println("GENERATED NEW PASS: ", newPass)
+	// _ := generateRandPassword(7)
 }
 
 // Ядро приложения "хранилище паролей"
 func corePasswordStorage() {
-	newacc := getAccountCreds()
+	newacc, err := getAccountCreds()
+	if err != nil {
+		return
+	}
+	emptyPwd := newacc.checkPassIsEmpty()
+	
+	// Если у аккаунта не указан пароль, то генерируем его с длиной в 8 символов
+	if emptyPwd {
+		newacc.generateAccPassword(8)
+	}
+	
 	newacc.showAccCreds()
 }
 
 // Получение кредов для нового аккаунта
-func getAccountCreds() account {
+func getAccountCreds() (*account, error) {
 	login, _ := getUserData("Введите логин >> ")
-	password, _ := getUserData("Введите пароль >> ")
+	password, _ := getUserData("Введите пароль (ENTER чтобы сгенерировать) >> ")
 	url, _ := getUserData("Введите адрес сервиса >> ")
-	return account {
-		login: login,
-		password: password,
-		url: url,
+	newacc, err := initAccount(login, password, url)
+	if err != nil {
+		fmt.Printf("Ошибка: %v\n", err)
+		return nil, err
 	}
+	return newacc, nil
 }
 
 // Запрос данных у пользователя
