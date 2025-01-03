@@ -5,55 +5,99 @@ import (
 	"DaniilSh23/go_struct/files"
 	"bufio"
 	"fmt"
-	"math/rand/v2"
 	"os"
 	"strings"
 )
 
 func main() {
-	corePasswordStorage()
-	// runeExample()
-	// _ := generateRandPassword(7)
+	mainMenu()
+}
+
+// Главное меню
+func mainMenu() {
+	
+
+	for {
+		// Вывод меню и запрос выбора пользователя
+		userChoice, err := getUserData("1 - Создать аккаунт\n2 - Найти аккаунт\n3 - Удалить аккант\n4 - Выход\n>>> ")
+		if err != nil {
+			continue
+		}
+		
+		// Обработка выбора юзера
+		choiceFunc := handleMenuChoice(userChoice)
+		if choiceFunc == nil {
+			fmt.Printf("Ваш выбор: %#q | Выход...\n", userChoice)
+			return
+		}
+		
+		// Вызов функции с логикой, соответствующей выбранному пункту меню
+		choiceFunc()
+	}
+}
+
+// Обработка выбора пункта меню
+func handleMenuChoice(userChoice string) func() {
+	choiceMapping := map[string]func(){
+		"1": createAccount,
+		"2": searchAccount,
+		"3": deleteAccount,
+	}
+	return choiceMapping[userChoice]
 }
 
 // Ядро приложения "хранилище паролей"
-func corePasswordStorage() {
+func createAccount() {
+
 	newacc, err := getAccountCreds()
 	if err != nil {
 		return
 	}
 
 	// Если у аккаунта не указан пароль, то генерируем его с длиной в 8 символов
-	emptyPwd := newacc.Acc.CheckPassIsEmpty() // К "композитному" методу можно обращаться так
+	emptyPwd := newacc.CheckPassIsEmpty() // К "композитному" методу можно обращаться так
 	if emptyPwd {
-		newacc.Acc.GenerateAccPassword(8) // Или вот так
+		newacc.GenerateAccPassword(8) // Или вот так
 	}
 
 	// Если у аккаунта не указан логин, то пишем ошибку и заканчиваем работу программы
-	emptyLogin := newacc.Acc.CheckLoginIsEmpty()
+	emptyLogin := newacc.CheckLoginIsEmpty()
 	if emptyLogin {
 		fmt.Println("Ошибка: логин не указан!")
 		return
 	}
-	
-	newacc.Acc.ShowAccCreds()
 
-	files.WriteFile()
+	// Преобразуем структуру аккаунта в байты и сохраняем в файл JSON
+	byteArr := newacc.ToBytes()
+	if byteArr == nil {
+		return
+	}
+	files.WriteFile(byteArr, "data.json")
 }
 
+// Найти аккаунт
+func searchAccount() {}
+
+// Удалить аккаунт
+func deleteAccount() {}
+
 // Получение кредов для нового аккаунта
-func getAccountCreds() (*account.AccountWithTimestamp, error) {
+func getAccountCreds() (*account.Account, error) {
 	login, _ := getUserData("Введите логин >> ")
 	password, _ := getUserData("Введите пароль (ENTER чтобы сгенерировать) >> ")
 	url, _ := getUserData("Введите адрес сервиса >> ")
 
 	// Получаем аккаунт с датой и временем
-	// newacc, err := initAccount(login, password, url)
-	newacc, err := account.InitAccountWithTimestamp(login, password, url)
+	newacc, err := account.InitAccount(login, password, url)
 	if err != nil {
 		fmt.Printf("Ошибка: %v\n", err)
 		return nil, err
 	}
+	
+	// Получение метаинформации о структуре
+	// field, _ := reflect.TypeOf(newacc).Elem().FieldByName("Login")
+	// fmt.Printf("Метаинформация (тэг) для поля login структуры Account: %v\n", string(field.Tag))
+
 	return newacc, nil
 }
 
@@ -73,58 +117,4 @@ func getUserData(request_text string) (string, error) {
 	return input, err
 }
 
-
-
-// Пример работы с рунами
-func runeExample() {
-	/*
-	Руна (rune) - это не что иное, как представление в виде unicode символов строки, по своей сути является int32.
-	*/
-	hello := "Hello world!)"
-	for _, char := range hello {
-		fmt.Println(char, string(char))
-	}
-
-	/*
-	Мы можем также увидеть, что rune - это просто alias к int32. Давай сделаем массив rune из все той же приветственной строки. Если навестить на rune и узнать, что она из себя представляет, то увидим, что ее определение выглядит следующим образом:
-
-	type rune = int32
-
-	То есть я могу создать свою руну, как отдельный alias данного типа, выполнив, например, такой код:
-
-	type myRune = int32
-
-	Соответственно и в коде ниже если создать не массив rune, а массив int32, то ничего не изменится, эти записи эквивалентны.
-
-	helloArr := []int32(hello)
-	*/
-	helloArr := []rune(hello)
-	for _, char := range helloArr {
-		fmt.Println(char, string(char))
-	}
-}
-
-
-/*
-	Упражнение "генерация пароля".
-	Задача написать функцию, которая примет на вход целое число - количество символов в случайном пароле и сгенерирует этот самый пароль, вернув строку. Для этого понадобится импортировать "math/rand/v2"
-*/
-
-func generateRandPassword(passLen int) string {
-
-	// Создаем слайс длиной, равной заданной длине случайного пароля
-	randPass := make([]string, passLen)
-
-	// Выполняем кол-во итераций, равное заданной длине случайного пароля
-	for indx:=0; indx < int(passLen); indx++ {
-
-		// На каждой итерации генерируем случайное число от 0 до 65535 (uint16)
-		randElem := rand.IntN(65535)
-		// И ставим его по нужному индексу в слайс случайного пароля, преобразовав в строку
-		randPass[indx] = string(randElem)
-	}
-
-	// Возвращаем сгенерированный пароль, объединив слайс с символами пароля в одну строку
-	return strings.Join(randPass, "")
-}
 
