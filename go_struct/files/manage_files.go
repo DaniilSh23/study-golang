@@ -20,7 +20,7 @@ func InitJsonDB(filename string) *JsonDB {
 
 
 // Функция для записи файла
-func (db *JsonDB) WriteFile(content []byte) {
+func (db *JsonDB) Write(content []byte) {
 	
 	// Цвета для текста в терминале
 	redColor := color.New(color.FgRed, color.Bold)
@@ -46,7 +46,7 @@ func (db *JsonDB) WriteFile(content []byte) {
 
 
 // Функция для чтения файла
-func (db *JsonDB) ReadFile() ([]byte, error) {
+func (db *JsonDB) Read() ([]byte, error) {
 	
 	// Цвета для текста в терминале
 	redColor := color.New(color.FgRed, color.Bold)

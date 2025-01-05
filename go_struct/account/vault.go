@@ -1,12 +1,18 @@
 package account
 
 import (
-	"DaniilSh23/go_struct/files"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 )
+
+
+// Интерфейс, определяющий требования к хранилищам данных
+type AnyDB interface {
+	Read() ([]byte, error)	// Метод для чтения данных
+	Write([]byte)	// Метод для записи данных
+}
 
 
 // Структура, отражающая данные из хранилища
@@ -18,15 +24,15 @@ type VaultData struct {
 // Структура, отражающая хранилище с БД
 type Vault struct {
 	Data VaultData `json:"data"`
-	DB *files.JsonDB `json:"jsonDB"`
+	DB AnyDB `json:"jsonDB"`
 }
 
 // Функция - конструктор структуры Vault
-func InitVault(db *files.JsonDB) *Vault {
+func InitVault(db AnyDB) *Vault {
 
 	// Пробуем достать данные Vault из JSON файла
 	// db := files.InitJsonDB("data.json")
-	data, err := db.ReadFile()
+	data, err := db.Read()
 	
 	vault := Vault {
 			Data: VaultData{
@@ -59,7 +65,7 @@ func (vault *Vault) AddAccount(acc *Account) {
 	
 	// Записываем обновленную структуру в файл
 	content := vault.ToBytes()
-	vault.DB.WriteFile(content)
+	vault.DB.Write(content)
 }
 
 // Приведение структуры данных хранилища к байтам для дальнейшей записи в файл 
@@ -105,7 +111,7 @@ func (vault *Vault) DeleteAccount(accUrl string) bool {
 	
 	// Записываем обновленную структуру в файл
 	content := vault.ToBytes()
-	vault.DB.WriteFile(content)
+	vault.DB.Write(content)
 	
 	return isDeleted
 }
