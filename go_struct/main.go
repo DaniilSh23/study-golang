@@ -67,15 +67,8 @@ func createAccount() {
 	}
 	
 	// Создаем хранилище аккаунтов и добавляем туда новый аккаунт
-	vault := account.InitVault()
+	vault := account.InitVault(files.InitJsonDB("data.json"))
 	vault.AddAccount(newacc)
-
-	// Преобразуем структуру хранилища в байты и сохраняем в файл JSON
-	byteArr := vault.ToBytes()
-	if byteArr == nil {
-		return
-	}
-	files.WriteFile(byteArr, "data.json")
 }
 
 // Найти аккаунт
@@ -86,7 +79,7 @@ func findAccount() {
 	if err != nil {return}
 
 	// Вызвать из Vault метод для поиска URL в структуре
-	vault := account.InitVault()
+	vault := account.InitVault(files.InitJsonDB("data.json"))
 	searchResult := vault.SearchAccount(usrInput)
 
 	// Вывод результатов поиска
@@ -108,7 +101,7 @@ func deleteAccount() {
 	if err != nil {return}
 
 	// Вызов метода удаления у Vault
-	vault := account.InitVault()
+	vault := account.InitVault(files.InitJsonDB("data.json"))
 	delResult := vault.DeleteAccount(usrInput)
 
 	// Информирование о результате
@@ -117,15 +110,7 @@ func deleteAccount() {
 		fmt.Printf("Успешное удаление.\n")
 	case false:
 		fmt.Printf("Удаление не удалось, возможно аккаунт не существует.\n")
-		return
 	}
-
-	// Преобразуем структуру хранилища в байты и сохраняем в файл JSON
-	byteArr := vault.ToBytes()
-	if byteArr == nil {
-		return
-	}
-	files.WriteFile(byteArr, "data.json")
 }
 
 // Получение кредов для нового аккаунта
