@@ -12,6 +12,7 @@ import (
 	"github.com/fatih/color" // Импорт стороннего модуля
 )
 
+
 // Структура, описывающая аккаунт, пароль для которого храним
 type Account struct {
 	Login string `json:"login"` // Логин к сервису

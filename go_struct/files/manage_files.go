@@ -23,17 +23,17 @@ func WriteFile(content []byte, filename string) {
 	defer newfile.Close() // Откладываем выполнение закрытия файла на конец функции (defer закидывает операции в stack frames, в случае нескольких вызовов defer, отложенные операции будут выполняться по принципу стека LIFO)
 	
 	// Запись строки в файл
-	writedBytes, err := newfile.Write(content)
+	_, err = newfile.Write(content)
 	if err != nil {
 		redColor.Printf("Ошибка при записи в файл %v\n", err)
 		return
 	}
-	greenColor.Printf("Успешно записано %v байт в файл %v\n", writedBytes, newfile.Name())
+	greenColor.Printf("Успешно записано байт в файл %v\n", newfile.Name())
 }
 
 
 // Функция для чтения файла
-func ReadFile(filename string) {
+func ReadFile(filename string) ([]byte, error) {
 	
 	// Цвета для текста в терминале
 	redColor := color.New(color.FgRed, color.Bold)
@@ -42,7 +42,9 @@ func ReadFile(filename string) {
 	data, err := os.ReadFile(filename)	// чтение файла целиком
 	if err != nil {
 		redColor.Printf("Ошибка при чтении файла %v: %v\n", filename, err)
+		return nil, err
 	}
 
-	greenColor.Printf("Успешное чтение файла %v:\n\n%v\n", filename, string(data))
+	greenColor.Printf("Успешное чтение файла %v:\n", filename)
+	return data, nil
 }

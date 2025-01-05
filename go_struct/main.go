@@ -16,14 +16,13 @@ func main() {
 // Главное меню
 func mainMenu() {
 	
-
 	for {
 		// Вывод меню и запрос выбора пользователя
 		userChoice, err := getUserData("1 - Создать аккаунт\n2 - Найти аккаунт\n3 - Удалить аккант\n4 - Выход\n>>> ")
 		if err != nil {
 			continue
 		}
-		
+
 		// Обработка выбора юзера
 		choiceFunc := handleMenuChoice(userChoice)
 		if choiceFunc == nil {
@@ -40,7 +39,7 @@ func mainMenu() {
 func handleMenuChoice(userChoice string) func() {
 	choiceMapping := map[string]func(){
 		"1": createAccount,
-		"2": searchAccount,
+		"2": findAccount,
 		"3": deleteAccount,
 	}
 	return choiceMapping[userChoice]
@@ -66,9 +65,13 @@ func createAccount() {
 		fmt.Println("Ошибка: логин не указан!")
 		return
 	}
+	
+	// Создаем хранилище аккаунтов и добавляем туда новый аккаунт
+	vault := account.InitVault()
+	vault.AddAccount(newacc)
 
-	// Преобразуем структуру аккаунта в байты и сохраняем в файл JSON
-	byteArr := newacc.ToBytes()
+	// Преобразуем структуру хранилища в байты и сохраняем в файл JSON
+	byteArr := vault.ToBytes()
 	if byteArr == nil {
 		return
 	}
@@ -76,10 +79,54 @@ func createAccount() {
 }
 
 // Найти аккаунт
-func searchAccount() {}
+func findAccount() {
+
+	// Запросить у юзера URL аккаунта, который надо найти
+	usrInput, err := getUserData("Введите URL аккаунта >>> ")
+	if err != nil {return}
+
+	// Вызвать из Vault метод для поиска URL в структуре
+	vault := account.InitVault()
+	searchResult := vault.SearchAccount(usrInput)
+
+	// Вывод результатов поиска
+	if len(searchResult) == 0 {
+		fmt.Printf("Ничего не найдено по запросу %s...\n", usrInput)
+	}
+	fmt.Printf(strings.Repeat("=", 10) + "\n")
+	for _, acc := range searchResult {
+		acc.ShowAccCreds()
+		fmt.Printf(strings.Repeat("=", 10) + "\n")
+	}
+}
 
 // Удалить аккаунт
-func deleteAccount() {}
+func deleteAccount() {
+	
+	// Запрос URL аккаунта для удаления
+	usrInput, err := getUserData("Введите URL аккаунта >>> ")
+	if err != nil {return}
+
+	// Вызов метода удаления у Vault
+	vault := account.InitVault()
+	delResult := vault.DeleteAccount(usrInput)
+
+	// Информирование о результате
+	switch delResult {
+	case true:
+		fmt.Printf("Успешное удаление.\n")
+	case false:
+		fmt.Printf("Удаление не удалось, возможно аккаунт не существует.\n")
+		return
+	}
+
+	// Преобразуем структуру хранилища в байты и сохраняем в файл JSON
+	byteArr := vault.ToBytes()
+	if byteArr == nil {
+		return
+	}
+	files.WriteFile(byteArr, "data.json")
+}
 
 // Получение кредов для нового аккаунта
 func getAccountCreds() (*account.Account, error) {
