@@ -15,7 +15,7 @@ func main() {
 
 // Главное меню
 func mainMenu() {
-	
+
 	for {
 		// Вывод меню и запрос выбора пользователя
 		userChoice, err := getUserData("1 - Создать аккаунт\n2 - Найти аккаунт\n3 - Удалить аккант\n4 - Выход\n>>> ")
@@ -29,7 +29,7 @@ func mainMenu() {
 			fmt.Printf("Ваш выбор: %#q | Выход...\n", userChoice)
 			return
 		}
-		
+
 		// Вызов функции с логикой, соответствующей выбранному пункту меню
 		choiceFunc()
 	}
@@ -65,7 +65,7 @@ func createAccount() {
 		fmt.Println("Ошибка: логин не указан!")
 		return
 	}
-	
+
 	// Создаем хранилище аккаунтов и добавляем туда новый аккаунт
 	vault := account.InitVault(files.InitJsonDB("data.json"))
 	vault.AddAccount(newacc)
@@ -76,7 +76,9 @@ func findAccount() {
 
 	// Запросить у юзера URL аккаунта, который надо найти
 	usrInput, err := getUserData("Введите URL аккаунта >>> ")
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 
 	// Вызвать из Vault метод для поиска URL в структуре
 	vault := account.InitVault(files.InitJsonDB("data.json"))
@@ -95,10 +97,12 @@ func findAccount() {
 
 // Удалить аккаунт
 func deleteAccount() {
-	
+
 	// Запрос URL аккаунта для удаления
 	usrInput, err := getUserData("Введите URL аккаунта >>> ")
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 
 	// Вызов метода удаления у Vault
 	vault := account.InitVault(files.InitJsonDB("data.json"))
@@ -125,7 +129,7 @@ func getAccountCreds() (*account.Account, error) {
 		fmt.Printf("Ошибка: %v\n", err)
 		return nil, err
 	}
-	
+
 	// Получение метаинформации о структуре
 	// field, _ := reflect.TypeOf(newacc).Elem().FieldByName("Login")
 	// fmt.Printf("Метаинформация (тэг) для поля login структуры Account: %v\n", string(field.Tag))
@@ -137,16 +141,14 @@ func getAccountCreds() (*account.Account, error) {
 func getUserData(request_text string) (string, error) {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf(request_text)
-	
+
 	/*
-	Считываем строку до нажатия ENTER (обязательно одинарные кавычки, так как ReadString принимает байты. В двойных значение \n было бы строкой)
+		Считываем строку до нажатия ENTER (обязательно одинарные кавычки, так как ReadString принимает байты. В двойных значение \n было бы строкой)
 	*/
-	input, err := reader.ReadString('\n')		
+	input, err := reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Ошибка ввода: ", err)
 	}
 	input = strings.TrimSpace(input)
 	return input, err
 }
-
-

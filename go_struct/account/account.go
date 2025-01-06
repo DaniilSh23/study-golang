@@ -12,12 +12,11 @@ import (
 	"github.com/fatih/color" // Импорт стороннего модуля
 )
 
-
 // Структура, описывающая аккаунт, пароль для которого храним
 type Account struct {
-	Login string `json:"login"` // Логин к сервису
-	Password string `json:"password"` // Пароль к сервису
-	Url string `json:"url"` // Адрес сервиса
+	Login     string    `json:"login"`    // Логин к сервису
+	Password  string    `json:"password"` // Пароль к сервису
+	Url       string    `json:"url"`      // Адрес сервиса
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
@@ -31,8 +30,8 @@ func (acc *Account) ShowAccCreds() {
 // Метод для создания пароля аккаунта
 func (acc *Account) GenerateAccPassword(passLen int) {
 	randPass := make([]string, passLen)
-	
-	for indx:=0; indx < int(passLen); indx++ {
+
+	for indx := 0; indx < int(passLen); indx++ {
 		randElem := rand.IntN(65535)
 		randPass[indx] = string(randElem)
 	}
@@ -62,26 +61,29 @@ func (acc *Account) ToBytes() []byte {
 		fmt.Printf("Ошибка при конвертации структуры аккаунта к байтам: %v", byteArray)
 		return nil
 	}
-	
+
 	return byteArray
 }
 
+// Проверка, что данные в аккаунте соответствуют определенной подстроке
+func (acc *Account) CheckIsMatched(value string) bool {
+	return strings.Contains(acc.Url, value) || strings.Contains(acc.Login, value)
+}
 
-// Конструктор структуры 
+// Конструктор структуры
 func InitAccount(login, password, urlString string) (*Account, error) {
-	
+
 	// Валидация url адреса
 	_, err := url.ParseRequestURI(urlString)
 	if err != nil {
 		return nil, errors.New("Invalid URL address.")
 	}
 
-	return &Account {
+	return &Account{
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		Login: login,
-		Password: password,
-		Url: urlString,
+		Login:     login,
+		Password:  password,
+		Url:       urlString,
 	}, nil
 }
-

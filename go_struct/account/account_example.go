@@ -3,18 +3,18 @@ package account
 import (
 	"errors"
 	"fmt"
+	"github.com/fatih/color" // Импорт стороннего модуля
 	"math/rand/v2"
 	"net/url"
 	"strings"
 	"time"
-	"github.com/fatih/color" // Импорт стороннего модуля
 )
 
 // Структура, описывающая аккаунт, пароль для которого храним
 type AccountExample struct {
-	Login string `json:"login" xml:"test"` // Логин к сервису
-	Password string `json:"password"` // Пароль к сервису
-	Url string `json:"url"` // Адрес сервиса
+	Login    string `json:"login" xml:"test"` // Логин к сервису
+	Password string `json:"password"`         // Пароль к сервису
+	Url      string `json:"url"`              // Адрес сервиса
 }
 
 // Метод для структуры account
@@ -26,7 +26,7 @@ func (AccountExample) structMethod() {
 Если указать (acc account) без звездочки, т.е. вот так: (acc *account), то будет создана копия структуры и передана в функцию (метод структуры), а со звездочкой - будет передан указатель на структуру.
 */
 
-// Еще один метод для структуры, в котором будут использоваться данные из структуры. 
+// Еще один метод для структуры, в котором будут использоваться данные из структуры.
 func (acc *AccountExample) structMethod2() {
 	fmt.Printf("Метод для структуры со следующими полями:\nlogin: %v\npassword: %v\nurl: %v\n", acc.Login, acc.Password, acc.Url)
 }
@@ -40,8 +40,8 @@ func (acc *AccountExample) ShowAccCreds() {
 // Метод для создания пароля аккаунта
 func (acc *AccountExample) GenerateAccPassword(passLen int) {
 	randPass := make([]string, passLen)
-	
-	for indx:=0; indx < int(passLen); indx++ {
+
+	for indx := 0; indx < int(passLen); indx++ {
 		randElem := rand.IntN(65535)
 		randPass[indx] = string(randElem)
 	}
@@ -64,61 +64,57 @@ func (acc *AccountExample) CheckLoginIsEmpty() bool {
 	return false
 }
 
-
-
 /*
-	Композиция структу. Это когда мы встраиваем одну структуру в другую. 
+	Композиция структу. Это когда мы встраиваем одну структуру в другую.
 	Например добавим структуру accoutWithTimestamp, которая будет содержать все, что в структуре account и еще два поля, связанных со временем.
 */
 
 // структура с композицией (аккаунт с полями времени)
 type AccountWithTimestamp struct {
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Acc AccountExample // Встраиваем структуру account
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	Acc       AccountExample // Встраиваем структуру account
 
 	/*
-	Допустим и такой вариант встраивания (явно именнованным полем). Но в таком случае будет недоступен короткий синтаксис вызова методов встроенной структуры и надо будет делать только вот так:
+		Допустим и такой вариант встраивания (явно именнованным полем). Но в таком случае будет недоступен короткий синтаксис вызова методов встроенной структуры и надо будет делать только вот так:
 
-	newacc.acc.checkPassIsEmpty()
-	*/ 	
-	// acc account 
+		newacc.acc.checkPassIsEmpty()
+	*/
+	// acc account
 }
-
 
 // Конструктор структуры account
 func initAccount(login, password, urlString string) (*AccountExample, error) {
-	
+
 	// Валидация url адреса
 	_, err := url.ParseRequestURI(urlString)
 	if err != nil {
 		return nil, errors.New("Invalid URL address.")
 	}
 
-	return &AccountExample {
-		Login: login,
+	return &AccountExample{
+		Login:    login,
 		Password: password,
-		Url: urlString,
+		Url:      urlString,
 	}, nil
 }
 
 // Конструктор структуры accountWithTimestamp
 func InitAccountWithTimestamp(login, password, urlString string) (*AccountWithTimestamp, error) {
-	
+
 	// Валидация url адреса
 	_, err := url.ParseRequestURI(urlString)
 	if err != nil {
 		return nil, errors.New("Invalid URL address.")
 	}
 
-	return &AccountWithTimestamp {
+	return &AccountWithTimestamp{
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		Acc: AccountExample {
-			Login: login,
+		Acc: AccountExample{
+			Login:    login,
 			Password: password,
-			Url: urlString,
+			Url:      urlString,
 		},
 	}, nil
 }
-

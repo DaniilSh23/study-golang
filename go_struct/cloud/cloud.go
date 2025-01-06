@@ -9,7 +9,7 @@ type CloudDB struct {
 
 // Конструктор для создания структуры облачного хранилища
 func InitCloudDB(host string) *CloudDB {
-	return &CloudDB {
+	return &CloudDB{
 		host: host,
 	}
 }
@@ -24,5 +24,3 @@ func (db *CloudDB) Read() ([]byte, error) {
 func (db *CloudDB) Write(content []byte) {
 	fmt.Printf("Записываем данные в облако | %v\n", content)
 }
-
-

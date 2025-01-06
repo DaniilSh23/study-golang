@@ -3,28 +3,25 @@ package account
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 )
 
-
 // Интерфейс, определяющий требования к хранилищам данных
 type AnyDB interface {
-	Read() ([]byte, error)	// Метод для чтения данных
-	Write([]byte)	// Метод для записи данных
+	Read() ([]byte, error) // Метод для чтения данных
+	Write([]byte)          // Метод для записи данных
 }
-
 
 // Структура, отражающая данные из хранилища
 type VaultData struct {
-	Accounts []Account `json:"accounts"`
+	Accounts  []Account `json:"accounts"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // Структура, отражающая хранилище с БД
 type Vault struct {
 	Data VaultData `json:"data"`
-	DB AnyDB `json:"jsonDB"`
+	DB   AnyDB     `json:"jsonDB"`
 }
 
 // Функция - конструктор структуры Vault
@@ -33,20 +30,20 @@ func InitVault(db AnyDB) *Vault {
 	// Пробуем достать данные Vault из JSON файла
 	// db := files.InitJsonDB("data.json")
 	data, err := db.Read()
-	
-	vault := Vault {
-			Data: VaultData{
-				Accounts: []Account{},
-				UpdatedAt: time.Now(),
-			},
-			DB: db,
-		}
+
+	vault := Vault{
+		Data: VaultData{
+			Accounts:  []Account{},
+			UpdatedAt: time.Now(),
+		},
+		DB: db,
+	}
 
 	// Возвращаем пустую структуру Vault, если достать данные из JSON не удалось
 	if err != nil {
 		return &vault
 	}
-	
+
 	// Создаем структуру Vault из данных в JSON файле
 	err = json.Unmarshal(data, &vault.Data)
 	if err != nil {
@@ -59,17 +56,17 @@ func InitVault(db AnyDB) *Vault {
 
 // Добавление нового аккаунта в хранилище
 func (vault *Vault) AddAccount(acc *Account) {
-	
+
 	// Добавляем новый аккаунт в структуру
 	vault.Data.Accounts = append(vault.Data.Accounts, *acc)
-	
+
 	// Записываем обновленную структуру в файл
 	content := vault.ToBytes()
 	vault.DB.Write(content)
 }
 
-// Приведение структуры данных хранилища к байтам для дальнейшей записи в файл 
-func (vault *Vault) ToBytes() []byte  {
+// Приведение структуры данных хранилища к байтам для дальнейшей записи в файл
+func (vault *Vault) ToBytes() []byte {
 	byteArr, err := json.MarshalIndent(vault.Data, "", "	")
 	if err != nil {
 		fmt.Printf("Ошибка при конвертации в байты структуры Vault: %v", err)
@@ -85,8 +82,7 @@ func (vault *Vault) SearchAccount(searchText string) []Account {
 
 	// Обходим все аккаунты в структуре и ищем подходящие
 	for _, acc := range vault.Data.Accounts {
-		searched := strings.Contains(acc.Url, searchText)
-		if searched {
+		if acc.CheckIsMatched(searchText) {
 			accResults = append(accResults, acc)
 		}
 	}
@@ -96,23 +92,22 @@ func (vault *Vault) SearchAccount(searchText string) []Account {
 
 // Удаление аккаунта по URL
 func (vault *Vault) DeleteAccount(accUrl string) bool {
-	
+
 	// Обходим все аккаунты в структуре и находим нужный для удаления
 	isDeleted := false
 	for indx, acc := range vault.Data.Accounts {
 		if acc.Url == accUrl {
 			fmt.Printf("Найден аккаунт с URL %v. Удаляем...\n", accUrl)
-			vault.Data.Accounts = append(vault.Data.Accounts[:indx], vault.Data.Accounts[indx + 1:]...) // Удаление - создаем новый слайс, исключив элемент, подлежащий удалению
+			vault.Data.Accounts = append(vault.Data.Accounts[:indx], vault.Data.Accounts[indx+1:]...) // Удаление - создаем новый слайс, исключив элемент, подлежащий удалению
 			isDeleted = true
 			vault.Data.UpdatedAt = time.Now()
 			break
 		}
 	}
-	
+
 	// Записываем обновленную структуру в файл
 	content := vault.ToBytes()
 	vault.DB.Write(content)
-	
+
 	return isDeleted
 }
-
