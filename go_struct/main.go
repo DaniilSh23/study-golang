@@ -3,14 +3,28 @@ package main
 import (
 	"DaniilSh23/go_struct/account"
 	"DaniilSh23/go_struct/files"
+	"DaniilSh23/go_struct/output"
 	"bufio"
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	loadEnv()
 	mainMenu()
+}
+
+// Загрузка переменных окружения
+func loadEnv() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		output.PrintError("Не удалось прочитать переменные окружения.")
+		os.Exit(1)
+	}
+	fmt.Println(os.Getenv("MYVAR"))
 }
 
 // Главное меню
