@@ -2,6 +2,7 @@ package main
 
 import (
 	"DaniilSh23/go_struct/account"
+	"DaniilSh23/go_struct/encrypter"
 	"DaniilSh23/go_struct/files"
 	"DaniilSh23/go_struct/output"
 	"bufio"
@@ -11,6 +12,8 @@ import (
 
 	"github.com/joho/godotenv"
 )
+
+var Crypter encrypter.Encrypter
 
 func main() {
 	loadEnv()
@@ -22,9 +25,14 @@ func loadEnv() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		output.PrintError("Не удалось прочитать переменные окружения.")
-		os.Exit(1)
+		os.Exit(11)
 	}
-	fmt.Println(os.Getenv("MYVAR"))
+	cryptoKey := os.Getenv("CRYPTO_KEY")
+	if cryptoKey == "" {
+		output.PrintError("Отсутствует переменная окружения CRYPTO_KEY")
+		os.Exit(12)
+	}
+	Crypter = *encrypter.InitEncrypter(cryptoKey)
 }
 
 // Главное меню
@@ -76,12 +84,12 @@ func createAccount() {
 	// Если у аккаунта не указан логин, то пишем ошибку и заканчиваем работу программы
 	emptyLogin := newacc.CheckLoginIsEmpty()
 	if emptyLogin {
-		fmt.Println("Ошибка: логин не указан!")
+		output.PrintError("Ошибка: логин не указан!")
 		return
 	}
 
 	// Создаем хранилище аккаунтов и добавляем туда новый аккаунт
-	vault := account.InitVault(files.InitJsonDB("data.json"))
+	vault := account.InitVault(files.InitJsonDB("encrypted_data"), &Crypter)
 	vault.AddAccount(newacc)
 }
 
@@ -89,13 +97,13 @@ func createAccount() {
 func findAccount() {
 
 	// Запросить у юзера URL аккаунта, который надо найти
-	usrInput, err := getUserData("Введите URL аккаунта >>> ")
+	usrInput, err := getUserData("Введите URL или логин аккаунта >>> ")
 	if err != nil {
 		return
 	}
 
 	// Вызвать из Vault метод для поиска URL в структуре
-	vault := account.InitVault(files.InitJsonDB("data.json"))
+	vault := account.InitVault(files.InitJsonDB("encrypted_data"), &Crypter)
 	searchResult := vault.SearchAccount(usrInput)
 
 	// Вывод результатов поиска
@@ -119,7 +127,7 @@ func deleteAccount() {
 	}
 
 	// Вызов метода удаления у Vault
-	vault := account.InitVault(files.InitJsonDB("data.json"))
+	vault := account.InitVault(files.InitJsonDB("encrypted_data"), &Crypter)
 	delResult := vault.DeleteAccount(usrInput)
 
 	// Информирование о результате

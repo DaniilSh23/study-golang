@@ -12,6 +12,12 @@ type AnyDB interface {
 	Write([]byte)          // Метод для записи данных
 }
 
+// Интерфейс, определяющий требования к структуре шифрования данных
+type AnyCrypter interface {
+	Encrypt([]byte) []byte
+	Decrypt([]byte) []byte
+}
+
 // Структура, отражающая данные из хранилища
 type VaultData struct {
 	Accounts  []Account `json:"accounts"`
@@ -21,14 +27,14 @@ type VaultData struct {
 // Структура, отражающая хранилище с БД
 type Vault struct {
 	Data VaultData `json:"data"`
-	DB   AnyDB     `json:"jsonDB"`
+	DB   AnyDB     
+	Crypt AnyCrypter
 }
 
 // Функция - конструктор структуры Vault
-func InitVault(db AnyDB) *Vault {
+func InitVault(db AnyDB, crypter AnyCrypter) *Vault {
 
 	// Пробуем достать данные Vault из JSON файла
-	// db := files.InitJsonDB("data.json")
 	data, err := db.Read()
 
 	vault := Vault{
@@ -37,11 +43,18 @@ func InitVault(db AnyDB) *Vault {
 			UpdatedAt: time.Now(),
 		},
 		DB: db,
+		Crypt: crypter,
 	}
 
 	// Возвращаем пустую структуру Vault, если достать данные из JSON не удалось
 	if err != nil {
+		fmt.Println("Не удалось достать данные из файла. Возвращаем пустое Vault.")
 		return &vault
+	}
+	
+	// Расшифровываем данные
+	if len(data) > 0{
+		data = crypter.Decrypt(data)	
 	}
 
 	// Создаем структуру Vault из данных в JSON файле
@@ -59,11 +72,21 @@ func (vault *Vault) AddAccount(acc *Account) {
 
 	// Добавляем новый аккаунт в структуру
 	vault.Data.Accounts = append(vault.Data.Accounts, *acc)
+	vault.Save()
+}
 
-	// Записываем обновленную структуру в файл
+// Сохранение данных в БД
+func (vault *Vault) Save() {
+	
 	content := vault.ToBytes()
+	
+	// Шифруем данные
+	content = vault.Crypt.Encrypt(content)
+	
+	// Записываем обновленную структуру в файл
 	vault.DB.Write(content)
 }
+
 
 // Приведение структуры данных хранилища к байтам для дальнейшей записи в файл
 func (vault *Vault) ToBytes() []byte {
@@ -104,10 +127,7 @@ func (vault *Vault) DeleteAccount(accUrl string) bool {
 			break
 		}
 	}
-
-	// Записываем обновленную структуру в файл
-	content := vault.ToBytes()
-	vault.DB.Write(content)
-
+	
+	vault.Save()
 	return isDeleted
 }
