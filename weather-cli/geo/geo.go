@@ -48,8 +48,7 @@ func InitGeoData(city string) (*GeoData, error) {
 	}
 
 	if response.StatusCode != 200 {
-		errMsg := "Not 200 status while GET geo by IP. Status code == " + string(response.StatusCode)
-		return nil, errors.New(errMsg)
+		return nil, ErrorNot200Status(response.StatusCode)
 	}
 	
 	// Читаем все из тела ответа (тело ответа является ридером потока данных)
